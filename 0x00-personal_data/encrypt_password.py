@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" A module for Encription using bcrypt """I
+""" A module for Encription using bcrypt """
 import bcrypt
 import typing
 
