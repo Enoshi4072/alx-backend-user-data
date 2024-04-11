@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+
+"""
+filtered_logger module
+"""
+import typing
+import re
+from typing import List
+import logging
+import os
+import mysql.connector
+
+patterns = {
+    'extract': lambda x, y: r'(?P<field>{})=[^{}]*'.format('|'.join(x), y),
+    'replace': lambda x: r'\g<field>={}'.format(x),
+}
+PII_FIELDS = ('email', 'phone', 'ssn', 'password', 'ip')
+
+def filter_datum(fields: List[str], redaction: str, message: str, separator: str) -> str:
+    """
+    Replace occurrences of certain field values with redaction string in the log message.
+
+    Args:
+        fields: A list of strings representing all fields to obfuscate.
+        redaction: A string representing by what the field will be obfuscated.
+        message: A string representing the log line.
+        separator: A string representing by which character is separating all fields
+                   in the log line (message).
+
+    Returns:
+        A string representing the log message with obfuscated fields.
+    """
+    return re.sub(patterns['extract'](fields, separator), patterns['replace'](redaction), message)
+
+class RedactingFormatter(logging.Formatter):
+    """ Redacting Formatter class
+        """
+
+    REDACTION = "***"
+    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
+    SEPARATOR = ";"
+
+    def __init__(self, fields: List[str]):
+        """ Constructor method for RedactingFormatter class """
+        super(RedactingFormatter, self).__init__(self.FORMAT)
+        self.fields = fields
+
+    def format(self, record: logging.LogRecord) -> str:
+        """
+        Format method override.
+        Placeholder method for formarring log messages
+        """
+        message = record.msg
+        for field in self.fields:
+            message = filter_datum([field], self.REDACTION, message, self.SEPARATOR)
+        record.msg = message
+        return super().format(record)
+
+def get_logger() -> logging.Logger:
+    """ Returns a logger obj configured according to the specifications """
+    #create a new logger obj named 'user_data'
+    logger = logging.getLogger("user_data")
+    #set the logging level to INFO
+    logger.setLevel(logging.INFO)
+    #creating a streamhandler to output log messages to the console
+    stream_handler = StreamHandler()
+    #set the handler's logging level to INFO
+    stream_handler.selLevel(logging.INFO)
+    #create a RedactingFormatter object with PII_FIELDS as parameter
+    formatter = RedactingFormatter(fields=PII_FIELDS)
+    #set the formatter for the StreamHandler
+    stream_handler.setFormatter(formatter)
+    #Add the StreamHandler to the logger
+    logger.addHandler(stream_handler)
+    #set propagation to False to prevent messages from propagating to parent loggers
+    logger.propagate = False
+    return logger
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+   """ Return a connection to the MySQL db using env vars """ 
+   #retrieve db credentials from env variables
+   username = os.getenv('PERSONAL_DATA_DB_USERNAME', 'root')
+   password = os.getenv('PERSONAL_DATA_DB_PASSWORD', '')
+   host = os.getenv('PERSONAL_DATA_DB_HOST', 'localhost')
+   database = os.getenv('PERSONAL_DATA_DB_NAME')
+   #Establish a connection to the MySQL database
+   db = mysql.connector.connect(
+           user=username,
+           password=password,
+           host=host,
+           database=database
+           )
+   return db
