@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+""" Encription using bcrypt """
 import bcrypt
 import typing
 
