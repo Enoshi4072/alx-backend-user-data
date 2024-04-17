@@ -1,38 +1,31 @@
 #!/usr/bin/env python3
-"""Authentication module for the API.
-"""
-import re
-from typing import List, TypeVar
+""" Creating a class for authentication """
 from flask import request
+from typing import List, TypeVar
 
 
 class Auth:
-    """Authentication class.
-    """
+    """ Handles authentication """
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """Checks if a path requires authentication.
         """
-        if path is not None and excluded_paths is not None:
-            for exclusion_path in map(lambda x: x.strip(), excluded_paths):
-                pattern = ''
-                if exclusion_path[-1] == '*':
-                    pattern = '{}.*'.format(exclusion_path[0:-1])
-                elif exclusion_path[-1] == '/':
-                    pattern = '{}/*'.format(exclusion_path[0:-1])
-                else:
-                    pattern = '{}/*'.format(exclusion_path)
-                if re.match(pattern, path):
-                    return False
+        Returns true if the path is not in the list of strings
+        of excluded paths
+        """
+        if path is None:
+            return True
+        if excluded_paths is None or len(excluded_paths) == 0:
+            return True
+        for ex_path in excluded_paths:
+            if path.rstrip("/") == ex_path.rstrip("/"):
+                return False
         return True
 
     def authorization_header(self, request=None) -> str:
-        """Gets the authorization header field from the request.
-        """
-        if request is not None:
-            return request.headers.get('Authorization', None)
-        return None
-
-    def current_user(self, request=None) -> TypeVar('User'):
-        """Gets the current user from the request.
-        """
+        """ Validating all requests to seure the API """
+        if request is None:
+            return None
+        if 'Authorization' not in request.headers:
+            return None
+        return request.headers['Authorization']
+    def current_user(self, request=None) -> TypeVar('user'):
         return None
