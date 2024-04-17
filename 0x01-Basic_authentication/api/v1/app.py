@@ -18,10 +18,8 @@ auth = None
 
 
 auth_type = getenv("AUTH_TYPE", 'some_auth')
-if auth_type == "some_auth":
-    auth = Auth()
-if auth_type == 'basic_auth':
-    auth = BasicAuth()
+if auth_type in ("some_auth", "basic_auth"):
+    auth = Auth() if auth_type == "some_auth" else BasicAuth()
 
 
 @app.before_request
