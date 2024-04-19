@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-""" Handling all routes for session auth """
+"""
+Handling all routes for session auth
+"""
 from models.user import User
 from api.v1.views import app_views
 
@@ -9,7 +11,11 @@ from flask import abort, jsonify, request
 
 @app_views.route('/auth_session/login', methods=['POST'], strict_slashes=False)
 def login() -> Tuple[str, int]:
-    """ Handling login requests """
+    """
+    Handling login requests
+    Return:
+        - JSON representation of a User object
+    """
     er_msg = {'error': 'no user found for this email'}
     email = request.form.get('email')
     if email is None or len(email.strip()) == 0:
