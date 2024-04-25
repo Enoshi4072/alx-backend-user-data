@@ -1,0 +1,13 @@
+A minimal Application
+- Has sth like this:
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def hello_world():
+	return 'Hello, World!'
+- How the code works
+a) Import the Flask class. An instance of the class becomes our WSGI application
+b) Create an instance of the class. First arg is the name of the apps module or package. If one is using a single module, one should use __name__ bcos depending on if it's started module the name will be different. This enables Flask to knwo where to look for templates, static files...
+c) Use the route() decorator to inform Flask what the URL should trigger our function
+d) The fxn is given a name which is also used to generate URLs for that particular fxn, and return the message one wants to display in the user's browser
+- Do not name it flask.py to avoid confliction
