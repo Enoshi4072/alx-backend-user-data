@@ -5,14 +5,13 @@ from db import DB
 from user import User
 from sqlalchemy.orm.exc import NoResultFound
 import uuid
+from typing import Union
+
 
 def _hash_password(password: str) -> bytes:
     """ Generate a salted hash of the input passowrd using bcrypt.hashpw """
-    #Generate a salt
     salt = bcrypt.gensalt()
-    #hash the password to the salt
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-    #return the hashed password as bytes
     return hashed_password
 
 def _generate_uuid() -> str:
@@ -61,3 +60,42 @@ class Auth:
                 return session_id
         except NoResultFound:
             return None
+
+    def get_user_from_session_id(self, session_id: str) -> Union[User, None]:
+        """ Gets a user based on the session id """
+        if session_id is None:
+            return None
+        try:
+            user = self._db.find_user_by(session_id=session_id)
+            return user
+        except NoResultFound:
+            return None
+
+    def destroy_session(self, user_id: int) -> None:
+        """ Takes a single user_id integer argument and returns None """
+        if user_id is None:
+            return None
+        self._db.update_user(user_id, session_id=None)
+
+    def get_reset_password_token(self, email: str) -> str:
+        """ Generating a reset password token """
+        try:
+            user = self._db.find_user_by(email=email)
+        except NoResultFound:
+            raise ValueError()
+        reset_token = _generate_uuid()
+        user.reset_token = reset_token
+        self._db.update_user(user.id, reset_token=reset_token)
+        return reset_token
+
+   def update_password(self, reset_token: str, password: str) -> None:
+       """ Handling the user's reset password option """
+       try:
+           user = self._db.find_user_by(reset_token=reset_token)
+       except NoResultFound:
+           raise ValueError()
+       h_password = _hash_password(password)
+       self._db.update_user(
+               user.id,
+               hashed_password=h_password_hash,
+               reset_token=None)
