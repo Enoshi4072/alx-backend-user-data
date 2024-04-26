@@ -14,6 +14,7 @@ def _hash_password(password: str) -> bytes:
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed_password
 
+
 def _generate_uuid() -> str:
     """ Returns a string rep of a new UUID module """
     return str(uuid.uuid4())
@@ -28,7 +29,7 @@ class Auth:
     def register_user(self, email: str, password: str) -> User:
         """ Registering users """
         try:
-            existing_user = self._db.find_user_by(email=email)    
+            existing_user = self._db.find_user_by(email=email)
         except NoResultFound:
             """ Hashing the password """
             hashed_password = _hash_password(password)
@@ -88,14 +89,14 @@ class Auth:
         self._db.update_user(user.id, reset_token=reset_token)
         return reset_token
 
-   def update_password(self, reset_token: str, password: str) -> None:
-       """ Handling the user's reset password option """
-       try:
-           user = self._db.find_user_by(reset_token=reset_token)
-       except NoResultFound:
-           raise ValueError()
-       h_password = _hash_password(password)
-       self._db.update_user(
-               user.id,
-               hashed_password=h_password_hash,
-               reset_token=None)
+    def update_password(self, reset_token: str, password: str) -> None:
+        """ Handling the user's reset password option """
+        try:
+            user = self._db.find_user_by(reset_token=reset_token)
+        except NoResultFound:
+            raise ValueError()
+        h_password = _hash_password(password)
+        self._db.update_user(
+                user.id,
+                hashed_password=h_password_hash,
+                reset_token=None)
