@@ -54,7 +54,8 @@ def logout() -> str:
         abort(403)
     AUTH.destroy_session(user.id)
     return redirect('/')
-    
+
+
 @app.route('/profile', methods=['GET'], strict_slashes=False)
 def profile() -> str:
     """ Handling a user profile """
@@ -72,9 +73,11 @@ def get_reset_password_token() -> str:
     email = request.form.get('email')
     try:
         reset_token = Auth.get_reset_password_token(email)
-        return jsonify({"email": email, "reset_token": reset_token}), 200
     except ValueError:
         abort(403)
+    if reset_token is None:
+        abort(403)
+    return jsonify({"email": email, "reset_token": reset_token}), 200
 
 
 @app.route('/update_password', methods=['PUT'], strict_slashes=False)
