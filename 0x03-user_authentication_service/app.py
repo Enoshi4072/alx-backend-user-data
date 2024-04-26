@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+""" Handling the app functions """
 from flask import Flask, jsonify, request, abort, make_response
 from auth import Auth
 
 app = Flask(__name__)
 AUTH = Auth()
+
 
 @app.route('/')
 def index() -> str:
@@ -23,8 +25,11 @@ def users() -> str:
         """ If successful, return a JSON response """
         return jsonify({"email": user.email, "message": "user created"}), 200
     except ValueError:
-        """ If already exists, return a JSON response with a 400 status code """
+        """
+        If already exists, return a JSON response with a 400 status code
+        """
         return jsonify({"message": "email already registered"}), 400
+
 
 @app.route('/sessions', methods=['POST'], strict_slashes=False)
 def login() -> str:
@@ -33,14 +38,15 @@ def login() -> str:
     password = request.form.get("password")
     if AUTH.valid_login(email, password):
         session_id = AUTH.create_session(email)
-        response = make_response(jsonify({"email": email, "message": "logged in"}))
+        response = jsonify({"email": email, "message": "logged in"})
         response.set_cookie('session_id', session_id)
         return response
     else:
         abort(401)
 
+
 @app.route('/sessions', methods=['DELETE'], strict_slashes=False)
-def logout():
+def logout() -> str:
     """ Logs out a user from the session """
     session_id = request.cookies.get('session_id')
     user = AUTH.get_user_from_session_id(session_id)
@@ -61,6 +67,7 @@ def profile() -> str:
     else:
         abort(403)
 
+
 @app.route('/reset_password', methods=['POST'], strict_slashes=False)
 def get_reset_password_token() -> str:
     """ Handling the reseting of passwords """
@@ -70,6 +77,7 @@ def get_reset_password_token() -> str:
         return jsonify({"email": email, "reset_token": reset_token}), 200
     except ValueError:
         abort(403)
+
 
 @app.route('/update_password', methods=['PUT'], strict_slashes=False)
 def update_password() -> str:
