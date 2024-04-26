@@ -71,14 +71,11 @@ def profile() -> str:
 def get_reset_password_token() -> str:
     """ Handling the reseting of passwords """
     email = request.form.get('email')
-    reset_token = None
     try:
-        reset_token = Auth.get_reset_password_token(email)
+        reset_token = AUTH.get_reset_password_token(email)
+        return jsonify({"email": email, "reset_token": reset_token})
     except ValueError:
-        reset_token = None
-    if reset_token is None:
         abort(403)
-    return jsonify({"email": email, "reset_token": reset_token})
 
 
 @app.route('/update_password', methods=['PUT'], strict_slashes=False)
